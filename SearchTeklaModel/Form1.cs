@@ -9,35 +9,109 @@ namespace SearchTeklaModel
 {
 	public partial class Search : Form
 	{
+		private readonly Model _model;
+
 		public Search()
 		{
-			InitializeComponent();
+			try
+			{
+				_model = new Model();
+
+				InitializeComponent();
+
+				InitializeUi();
+			}
+			catch (Exception ex)
+			{
+				
+			}
 		}
 
 		private void buttonSearch_Click(object sender, EventArgs e)
 		{
-			//searching for member part mark
-			var searchValue = textBoxSearch.Text;
+			if (string.IsNullOrWhiteSpace(textBoxSearchString.Text)) return;
 
-			ModelObjectEnumerator.AutoFetch = true;
-			var modelObjects = new Model().GetModelObjectSelector()
-				.GetAllObjectsWithType(ModelObject.ModelObjectEnum.BEAM)
-				.ToList()
-				.OfType<Beam>()
-				.ToList();
+			var parts = GetPartsByPartType(comboBoxPartType.Text);
+			if (!parts.Any()) return;
 
-			var beams = modelObjects
-				.Where(b => b.GetPartMark()
-				.Contains(searchValue))
-				.ToList();
+			var results = GetSearchResults(parts, comboBoxPartProperty.Text, textBoxSearchString.Text);
+			if (!results.Any()) return;
 
-			beams.ForEach(b =>
+			DrawResultsInModel(results);
+		}
+
+		private void DrawResultsInModel(List<Part> parts)
+		{
+			var drawer = new GraphicsDrawer();
+			var color = new Color(1, 1, 1);
+
+			parts.ForEach(p =>
 			{
-				var drawer = new GraphicsDrawer();
-				var color = new Tekla.Structures.Model.UI.Color(1,1,1);
-				var location = b.GetCoordinateSystem().Origin;
-				drawer.DrawText(location, b.GetPartMark(), color);
+				var location = p.GetCoordinateSystem().Origin;
+				if(comboBoxPartProperty.Text == "PARTMARK")
+					drawer.DrawText(location, p.GetPartMark(), color);
+				else
+					drawer.DrawText(location, textBoxSearchString.Text, color);
 			});
+		}
+
+		private List<Part> GetPartsByPartType(string type)
+		{
+			switch (type)
+			{
+				case "BEAM":
+					return _model.GetPartsByType(ModelObject.ModelObjectEnum.BEAM);
+				case "CONTOUR_PLATE":
+					return _model.GetPartsByType(ModelObject.ModelObjectEnum.CONTOURPLATE);
+				case "POLYBEAM":
+					return _model.GetPartsByType(ModelObject.ModelObjectEnum.POLYBEAM);
+				case "BENT_PLATE":
+					return _model.GetPartsByType(ModelObject.ModelObjectEnum.BENT_PLATE);
+				default:
+					return new List<Part>();
+			}
+		}
+
+		private List<Part> GetSearchResults(List<Part> parts, string partProperty, string searchString)
+		{
+			switch (partProperty)
+			{
+				case "NAME":
+					return parts.Where(p => p.Name.Contains(searchString)).ToList();
+				case "PROFILE":
+					return parts.Where(p => p.Profile.ProfileString.Contains(searchString)).ToList();
+				case "MATERIAL":
+					return parts.Where(p => p.Material.MaterialString.Contains(searchString)).ToList();
+				case "CLASS":
+					return parts.Where(p => p.Class.Contains(searchString)).ToList();
+				case "FINISH":
+					return parts.Where(p => p.Finish.Contains(searchString)).ToList();
+				case "PARTMARK":
+					return parts.Where(p => p.GetPartMark().Contains(searchString)).ToList();
+				default:
+					return new List<Part>();
+			}
+		}
+
+		private void InitializeUi()
+		{
+			comboBoxPartType.DataSource = new List<string>
+			{
+				"BEAM",
+				"CONTOUR_PLATE",
+				"POLYBEAM",
+				"BENT_PLATE"
+			};
+
+			comboBoxPartProperty.DataSource = new List<string>
+			{
+				"NAME",
+				"PROFILE",
+				"MATERIAL",
+				"CLASS",
+				"FINISH",
+				"PARTMARK",
+			};
 		}
 	}
 
@@ -52,6 +126,17 @@ namespace SearchTeklaModel
 				modelObjects.Add(modelObject);
 			}
 			return modelObjects;
+		}
+
+		public static List<Part> GetPartsByType(this Model model, ModelObject.ModelObjectEnum modelObjectEnum)
+		{
+			ModelObjectEnumerator.AutoFetch = true;
+
+			return model.GetModelObjectSelector()
+				.GetAllObjectsWithType(modelObjectEnum)
+				.ToList()
+				.OfType<Part>()
+				.ToList();
 		}
 	}
 }
