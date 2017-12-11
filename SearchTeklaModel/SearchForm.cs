@@ -48,10 +48,31 @@ namespace SearchTeklaModel
 			parts.ForEach(p =>
 			{
 				var location = p.GetCoordinateSystem().Origin;
-				if(comboBoxPartProperty.Text == "PARTMARK")
-					drawer.DrawText(location, p.GetPartMark(), color);
-				else
-					drawer.DrawText(location, textBoxSearchString.Text, color);
+
+				switch (comboBoxPartProperty.Text)
+				{
+					case "NAME":
+						drawer.DrawText(location, p.Name, color);
+						break;
+					case "PROFILE":
+						drawer.DrawText(location, p.Profile.ProfileString, color);
+						break;
+					case "MATERIAL":
+						drawer.DrawText(location, p.Material.MaterialString, color);
+						break;
+					case "CLASS":
+						drawer.DrawText(location, p.Class, color);
+						break;
+					case "FINISH":
+						drawer.DrawText(location, p.Finish, color);
+						break;
+					case "PARTMARK":
+						drawer.DrawText(location, p.GetPartMark(), color);
+						break;
+					default:
+						drawer.DrawText(location, textBoxSearchString.Text, color);
+						break;
+				}
 			});
 		}
 
