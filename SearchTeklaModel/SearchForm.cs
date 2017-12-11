@@ -77,17 +77,29 @@ namespace SearchTeklaModel
 			switch (partProperty)
 			{
 				case "NAME":
-					return parts.Where(p => p.Name.Contains(searchString)).ToList();
+					return parts.AsParallel()
+						.Where(p => p.Name.Contains(searchString))
+						.ToList();
 				case "PROFILE":
-					return parts.Where(p => p.Profile.ProfileString.Contains(searchString)).ToList();
+					return parts.AsParallel()
+						.Where(p => p.Profile.ProfileString.Contains(searchString))
+						.ToList();
 				case "MATERIAL":
-					return parts.Where(p => p.Material.MaterialString.Contains(searchString)).ToList();
+					return parts.AsParallel()
+						.Where(p => p.Material.MaterialString.Contains(searchString))
+						.ToList();
 				case "CLASS":
-					return parts.Where(p => p.Class.Contains(searchString)).ToList();
+					return parts.AsParallel()
+						.Where(p => p.Class.Contains(searchString))
+						.ToList();
 				case "FINISH":
-					return parts.Where(p => p.Finish.Contains(searchString)).ToList();
+					return parts.AsParallel()
+						.Where(p => p.Finish.Contains(searchString))
+						.ToList();
 				case "PARTMARK":
-					return parts.Where(p => p.GetPartMark().Contains(searchString)).ToList();
+					return parts.AsParallel()
+						.Where(p => p.GetPartMark().Contains(searchString))
+						.ToList();
 				default:
 					return new List<Part>();
 			}
